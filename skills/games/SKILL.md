@@ -4,15 +4,15 @@ description: Retro terminal arcade - play Snake, 2048, Minesweeper, Wordle, Hang
 
 # Pi Arcade / 街机游戏
 
-Open the retro terminal arcade with `/arcade`. All games auto-save on exit — re-open `/arcade` to continue where you left off.
+Open the retro terminal arcade with `/game`. All games auto-save on exit — re-open `/game` to continue where you left off.
 
-用 `/arcade` 打开街机游戏菜单。所有游戏退出时自动存档——再次打开 `/arcade` 即可继续。
+用 `/game` 打开街机游戏菜单。所有游戏退出时自动存档——再次打开 `/game` 即可继续。
 
 | Command                 | Description / 说明                                 |
 | ----------------------- | -------------------------------------------------- |
-| `/arcade`               | Open game selection menu / 打开游戏选择菜单        |
-| `/arcade-list`          | List all games (shows 💾 for saves) / 列出所有游戏 |
-| `/arcade-install <url>` | Install a game from a URL / 从URL安装游戏          |
+| `/game`               | Open game selection menu / 打开游戏选择菜单        |
+| `/game-list`          | List all games (shows 💾 for saves) / 列出所有游戏 |
+| `/game-install <url>` | Install a game from a URL / 从URL安装游戏          |
 
 ## Controls / 操作
 
