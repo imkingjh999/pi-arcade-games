@@ -1,0 +1,33 @@
+{
+  "name": "pi-game",
+  "version": "1.0.0",
+  "description": "Retro terminal arcade for Pi - play games while you wait for builds and tests",
+  "keywords": [
+    "pi-package"
+  ],
+  "type": "module",
+  "main": "dist/extensions/arcade.js",
+  "pi": {
+    "extensions": [
+      "./dist/extensions"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "build": "tsc",
+            "test": "npx tsx tests/run-all.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.75.3",
+    "@earendil-works/pi-coding-agent": "^0.75.3",
+    "@earendil-works/pi-tui": "^0.75.3",
+    "@sinclair/typebox": "^0.34.49"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

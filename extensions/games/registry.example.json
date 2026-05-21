@@ -1,0 +1,25 @@
+{
+  "name": "Pi Arcade Community Games",
+  "description": "Community-contributed games for Pi Arcade",
+  "version": 1,
+  "games": [
+    {
+      "id": "tetris",
+      "name": "Tetris",
+      "url": "https://raw.githubusercontent.com/example/pi-games/main/dist/tetris.js",
+      "description": "Stack the blocks"
+    },
+    {
+      "id": "breakout",
+      "name": "Breakout",
+      "url": "https://raw.githubusercontent.com/example/pi-games/main/dist/breakout.js",
+      "description": "Break all the bricks"
+    },
+    {
+      "id": "pong",
+      "name": "Pong",
+      "url": "https://raw.githubusercontent.com/example/pi-games/main/dist/pong.js",
+      "description": "Classic ping-pong"
+    }
+  ]
+}

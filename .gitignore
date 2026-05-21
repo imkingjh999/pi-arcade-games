@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.game-cache/
+.pi-lens/
+*.tsbuildinfo
