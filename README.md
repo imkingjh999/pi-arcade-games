@@ -2,7 +2,31 @@
 
 Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi). Play classic games while you wait for builds, tests, and long-running tasks.
 
-18 games built in — with bilingual (English / 中文) menu support and auto-save.
+![Pi Arcade Games Demo](./docs/demo.gif)
+
+**18 games** built in — with bilingual (English / 中文) menu support and **auto-save**.
+
+## 💾 Auto-Save
+
+Every game automatically saves your progress when you exit. Come back anytime and pick up right where you left off.
+
+```
+    ╔════════════════════════════════════════╗
+    ║      P I   A R C A D E   G A M E S     ║
+    ╚════════════════════════════════════════╝
+
+  ▸ [1]  2048            ···  Slide & merge tiles
+    [2]  Battleship      ···  Naval combat vs AI
+    [3]  Snake           ···  Eat food, grow, don't crash  💾
+
+    💾 Continue: Snake
+```
+
+- **💾 badge** — appears next to games with saved progress
+- **Continue prompt** — shows at the bottom so you can jump right back in
+- **Per-game state** — each game stores its own save independently (score, board, position…)
+
+Just select the game with 💾 and you're back in action. No manual saving needed.
 
 ## Games
 
@@ -52,33 +76,21 @@ pi -e /path/to/pi-arcade-games
 
 </details>
 
-## Usage
+## Quick Start
 
-Type `/game` in Pi to open the game selection menu:
-
-```
-    ╔══════════════════════════════════════╗
-    ║     P I   A R C A D E   G A M E S      ║
-    ║     Kill some time with a classic    ║
-    ╚══════════════════════════════════════╝
-
-  ▸ [1]  2048            ···  Slide & merge tiles
-    [2]  Battleship      ···  Naval combat vs AI
-    [3]  Breakout        ···  Break bricks with ball
-    ...
-
-    💾 Continue: Snake
-```
+1. Type `/arcade` in Pi to open the game menu
+2. First launch picks your language (English / 中文) — remembered for next time
+3. Pick a game with arrow keys + `ENTER` and start playing
+4. Press `Q` or `ESC` to quit — **your progress is auto-saved**
+5. Open `/arcade` again to continue from where you left off
 
 ### Commands
 
-| Command               | Description                         |
-| --------------------- | ----------------------------------- |
-| `/game`               | Open game selection menu            |
-| `/game-list`          | List all games (shows 💾 for saves) |
-| `/game-install <url>` | Install a game from a URL           |
-
-First launch shows a language picker (English / 中文). All games auto-save on exit — re-open `/game` to continue where you left off.
+| Command                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `/arcade`               | Open game selection menu            |
+| `/arcade-list`          | List all games (shows 💾 for saves) |
+| `/arcade-install <url>` | Install a game from a URL           |
 
 ### Environment Variables
 
@@ -114,7 +126,7 @@ First launch shows a language picker (English / 中文). All games auto-save on 
 ## Tips
 
 - Background long-running tasks with **Ctrl+B** before starting a game
-- All games auto-save on exit — just re-open `/game` to continue
+- All games auto-save on exit — just re-open `/arcade` to continue
 - After quitting a game, you return to the menu to pick another
 
 ## Writing Your Own Game 🛠️
@@ -142,7 +154,7 @@ npm run build
 ```
 pi-arcade-games/
 ├── extensions/
-│   ├── arcade.ts               # Main extension: menu, commands, /game
+│   ├── arcade.ts               # Main extension: menu, commands, /arcade
 │   └── games/
 │       ├── types.ts            # GameModule interface
 │       ├── ansi.ts             # Shared ANSI styling helpers
