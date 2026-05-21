@@ -1,4 +1,4 @@
-# Pi Game 🎮
+# Pi Arcade Games 🎮
 
 Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi). Play classic games while you wait for builds, tests, and long-running tasks.
 
@@ -45,9 +45,9 @@ Or add to your Pi settings:
 <summary>Local install (for development)</summary>
 
 ```bash
-pi install /path/to/pi-game
+pi install /path/to/pi-arcade-games
 # or test without installing:
-pi -e /path/to/pi-game
+pi -e /path/to/pi-arcade-games
 ```
 
 </details>
@@ -58,7 +58,7 @@ Type `/game` in Pi to open the game selection menu:
 
 ```
     ╔══════════════════════════════════════╗
-    ║        P I   G A M E                ║
+    ║     P I   A R C A D E   G A M E S      ║
     ║     Kill some time with a classic    ║
     ╚══════════════════════════════════════╝
 
@@ -119,7 +119,7 @@ First launch shows a language picker (English / 中文). All games auto-save on 
 
 ## Writing Your Own Game 🛠️
 
-Pi Game is designed to be extensible. Anyone can write a game and submit a PR!
+Pi Arcade Games is designed to be extensible. Anyone can write a game and submit a PR!
 
 **Quick overview:**
 
@@ -140,7 +140,7 @@ npm run build
 ## Architecture
 
 ```
-pi-game/
+pi-arcade-games/
 ├── extensions/
 │   ├── arcade.ts               # Main extension: menu, commands, /game
 │   └── games/

@@ -134,18 +134,18 @@ class LangSelectComponent implements _Component {
 
 		lines.push("");
 		lines.push(
-			centerPad(BOLD_CYAN("╔══════════════════════════════════════╗"), width),
+			centerPad(BOLD_CYAN("╔══════════════════════════════════════════╗"), width),
 		);
 		lines.push(
 			centerPad(
 				BOLD_CYAN("║") +
-					BOLD("            P I   G A M E             ") +
+					BOLD("     P I   A R C A D E   G A M E S      ") +
 					BOLD_CYAN("║"),
 				width,
 			),
 		);
 		lines.push(
-			centerPad(BOLD_CYAN("╚══════════════════════════════════════╝"), width),
+			centerPad(BOLD_CYAN("╚══════════════════════════════════════════╝"), width),
 		);
 		lines.push("");
 		lines.push(centerPad(BOLD(MENU.langTitle.en), width));
@@ -403,18 +403,18 @@ class ArcadeMenuComponent implements _Component {
 		const lines: string[] = [];
 
 		lines.push(
-			centerPad(BOLD_CYAN("╔══════════════════════════════════════╗"), width),
+			centerPad(BOLD_CYAN("╔══════════════════════════════════════════╗"), width),
 		);
 		lines.push(
 			centerPad(
 				BOLD_CYAN("║") +
-					BOLD("            P I   G A M E             ") +
+					BOLD("     P I   A R C A D E   G A M E S      ") +
 					BOLD_CYAN("║"),
 				width,
 			),
 		);
 		lines.push(
-			centerPad(BOLD_CYAN("╚══════════════════════════════════════╝"), width),
+			centerPad(BOLD_CYAN("╚══════════════════════════════════════════╝"), width),
 		);
 		lines.push("");
 

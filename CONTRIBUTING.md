@@ -1,4 +1,4 @@
-# Contributing to Pi Game 🎮
+# Contributing to Pi Arcade Games 🎮
 
 Thanks for your interest in contributing a game! This guide walks you through everything you need to know.
 
@@ -273,7 +273,7 @@ Here's a complete minimal game with save/restore:
 
 ```typescript
 /**
- * Pong - A minimal game example for Pi Game
+ * Pong - A minimal game example for Pi Arcade Games
  */
 
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
@@ -517,4 +517,4 @@ Looking for inspiration? Here are some games that would be great additions:
 
 By contributing, you agree that your code will be licensed under the MIT License.
 
-Thank you for making Pi Game more fun! 🕹️
+Thank you for making Pi Arcade Games more fun! 🕹️
