@@ -8,8 +8,8 @@ Open the retro terminal arcade with `/game`. All games auto-save on exit — re-
 
 用 `/game` 打开街机游戏菜单。所有游戏退出时自动存档——再次打开 `/game` 即可继续。
 
-| Command                 | Description / 说明                                 |
-| ----------------------- | -------------------------------------------------- |
+| Command               | Description / 说明                                 |
+| --------------------- | -------------------------------------------------- |
 | `/game`               | Open game selection menu / 打开游戏选择菜单        |
 | `/game-list`          | List all games (shows 💾 for saves) / 列出所有游戏 |
 | `/game-install <url>` | Install a game from a URL / 从URL安装游戏          |

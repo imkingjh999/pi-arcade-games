@@ -86,8 +86,8 @@ pi -e /path/to/pi-arcade-games
 
 ### Commands
 
-| Command                 | Description                         |
-| ----------------------- | ----------------------------------- |
+| Command               | Description                         |
+| --------------------- | ----------------------------------- |
 | `/game`               | Open game selection menu            |
 | `/game-list`          | List all games (shows 💾 for saves) |
 | `/game-install <url>` | Install a game from a URL           |
