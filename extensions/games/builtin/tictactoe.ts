@@ -568,11 +568,12 @@ const gameTicTacToe: GameModule = {
 					.map((cell, c) => {
 						if (cell === "X") return " ❌ ";
 						if (cell === "O") return " ⭕ ";
-						return ` ${pos(r, c)} `;
+						const p = pos(r, c);
+						return ` ${p} `;
 					})
 					.join("│");
 				lines.push(row);
-				if (r < 2) lines.push("────┼─────┼────");
+				if (r < 2) lines.push("───┼───┼───");
 			}
 			if (status && status !== "playing") {
 				if (status === "win_X") lines.push("\n🎉 You (X) win!");
@@ -713,8 +714,6 @@ Your cursor is at (${state.agentCursorRow}, ${state.agentCursorCol}). Emit ALL m
 
 		// ── Agent tools ────────────────────────────────────────────────
 
-		type Action = "move_up" | "move_down" | "move_left" | "move_right" | "play";
-
 		pi.registerTool({
 			name: "arcade_ttt",
 			label: "Tic-Tac-Toe Move",
@@ -845,7 +844,6 @@ Your cursor is at (${state.agentCursorRow}, ${state.agentCursorCol}). Emit ALL m
 					: new Text(sum, 0, 0);
 			},
 		});
-
 
 		// ── Headless / Chat tools (Slack-compatible) ─────────────────
 
