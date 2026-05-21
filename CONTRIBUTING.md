@@ -458,11 +458,29 @@ npm run build
 # Run tests
 npm test
 
-# Install into Pi locally for testing
+# Local test (no install)
+pi -e .
+
+# Install into Pi locally
 pi install .
 
 # Play your game!
 # Type /game in Pi, select your game
+```
+
+## Publishing
+
+Pi packages are npm packages — publish to npm and they automatically appear on pi.dev/packages.
+
+```bash
+npm run build          # compile TypeScript
+npm publish            # publish to npm
+```
+
+After publishing, anyone can install:
+
+```bash
+pi install npm:pi-game
 ```
 
 ---

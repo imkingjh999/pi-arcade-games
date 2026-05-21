@@ -6,40 +6,51 @@ Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi
 
 ## Games
 
-| Game               | Description                                  |
-| ------------------ | -------------------------------------------- |
-| **2048**           | Slide & merge tiles to reach 2048            |
-| **Battleship**     | Naval combat vs AI                           |
-| **Breakout**       | Break bricks with ball and paddle            |
-| **Connect Four**   | Drop discs, get 4 in a row vs AI             |
-| **Gomoku**         | Five in a row strategy game                  |
-| **Hangman**        | Guess the hidden word one letter at a time   |
-| **Lights Out**     | Toggle all lights off                        |
-| **Memory**         | Flip & match card pairs                      |
-| **Minesweeper**    | Reveal cells, flag mines, clear the board    |
-| **Pong**           | Classic paddle game, first to 5 wins         |
-| **Reversi**        | Othello strategy game vs AI                  |
-| **Snake**          | Eat food, grow, don't crash                  |
-| **Sliding Puzzle** | Arrange numbered tiles in order (3×3–5×5)    |
-| **Sudoku**         | 9×9 number puzzle                            |
-| **Tetris**         | Stack & clear lines                          |
-| **Tic-Tac-Toe**    | Classic 3×3 grid, X vs O against the agent   |
-| **Typing Test**    | Test your typing speed and accuracy          |
-| **Wordle**         | 5-letter word, 6 guesses, position feedback  |
+| Game               | Description                                 |
+| ------------------ | ------------------------------------------- |
+| **2048**           | Slide & merge tiles to reach 2048           |
+| **Battleship**     | Naval combat vs AI                          |
+| **Breakout**       | Break bricks with ball and paddle           |
+| **Connect Four**   | Drop discs, get 4 in a row vs AI            |
+| **Gomoku**         | Five in a row strategy game                 |
+| **Hangman**        | Guess the hidden word one letter at a time  |
+| **Lights Out**     | Toggle all lights off                       |
+| **Memory**         | Flip & match card pairs                     |
+| **Minesweeper**    | Reveal cells, flag mines, clear the board   |
+| **Pong**           | Classic paddle game, first to 5 wins        |
+| **Reversi**        | Othello strategy game vs AI                 |
+| **Snake**          | Eat food, grow, don't crash                 |
+| **Sliding Puzzle** | Arrange numbered tiles in order (3×3–5×5)   |
+| **Sudoku**         | 9×9 number puzzle                           |
+| **Tetris**         | Stack & clear lines                         |
+| **Tic-Tac-Toe**    | Classic 3×3 grid, X vs O against the agent  |
+| **Typing Test**    | Test your typing speed and accuracy         |
+| **Wordle**         | 5-letter word, 6 guesses, position feedback |
 
 ## Install
 
 ```bash
-pi install /path/to/pi-game
+pi install npm:pi-game
 ```
 
 Or add to your Pi settings:
 
 ```json
 {
-  "packages": ["./path/to/pi-game"]
+  "packages": ["pi-game"]
 }
 ```
+
+<details>
+<summary>Local install (for development)</summary>
+
+```bash
+pi install /path/to/pi-game
+# or test without installing:
+pi -e /path/to/pi-game
+```
+
+</details>
 
 ## Usage
 
@@ -61,20 +72,20 @@ Type `/game` in Pi to open the game selection menu:
 
 ### Commands
 
-| Command               | Description                          |
-| --------------------- | ------------------------------------ |
-| `/game`               | Open game selection menu             |
-| `/game-list`          | List all games (shows 💾 for saves)  |
-| `/game-install <url>` | Install a game from a URL            |
+| Command               | Description                         |
+| --------------------- | ----------------------------------- |
+| `/game`               | Open game selection menu            |
+| `/game-list`          | List all games (shows 💾 for saves) |
+| `/game-install <url>` | Install a game from a URL           |
 
 First launch shows a language picker (English / 中文). All games auto-save on exit — re-open `/game` to continue where you left off.
 
 ### Environment Variables
 
-| Variable                  | Description                                      |
-| ------------------------- | ------------------------------------------------ |
-| `PI_ARCADE_REGISTRY`      | URL to a game registry JSON manifest             |
-| `PI_ARCADE_LOCAL_GAMES`   | Colon-separated list of local game module paths   |
+| Variable                | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `PI_ARCADE_REGISTRY`    | URL to a game registry JSON manifest            |
+| `PI_ARCADE_LOCAL_GAMES` | Colon-separated list of local game module paths |
 
 ## Controls
 
