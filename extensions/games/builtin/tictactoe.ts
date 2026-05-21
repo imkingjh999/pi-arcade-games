@@ -566,8 +566,8 @@ const gameTicTacToe: GameModule = {
 			for (let r = 0; r < 3; r++) {
 				const row = board[r]
 					.map((cell, c) => {
-						if (cell === "X") return " ❌ ";
-						if (cell === "O") return " ⭕ ";
+						if (cell === "X") return " X ";
+						if (cell === "O") return " O ";
 						const p = pos(r, c);
 						return ` ${p} `;
 					})
@@ -576,9 +576,9 @@ const gameTicTacToe: GameModule = {
 				if (r < 2) lines.push("───┼───┼───");
 			}
 			if (status && status !== "playing") {
-				if (status === "win_X") lines.push("\n🎉 You (X) win!");
-				else if (status === "win_O") lines.push("\n🤖 I (O) win!");
-				else lines.push("\n🤝 It's a draw!");
+				if (status === "win_X") lines.push("\nYou (X) win!");
+				else if (status === "win_O") lines.push("\nI (O) win!");
+				else lines.push("\nDraw!");
 			}
 			return lines.join("\n");
 		}
