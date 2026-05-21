@@ -2,7 +2,7 @@
 
 Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi). Play classic games while you wait for builds, tests, and long-running tasks.
 
-![Pi Arcade Games Demo](./docs/demo.gif)
+![Pi Arcade Games Demo](https://raw.githubusercontent.com/imkingjh999/pi-arcade-games/main/docs/demo.gif)
 
 **18 games** built in — with bilingual (English / 中文) menu support and **auto-save**.
 
@@ -78,19 +78,19 @@ pi -e /path/to/pi-arcade-games
 
 ## Quick Start
 
-1. Type `/arcade` in Pi to open the game menu
+1. Type `/game` in Pi to open the game menu
 2. First launch picks your language (English / 中文) — remembered for next time
 3. Pick a game with arrow keys + `ENTER` and start playing
 4. Press `Q` or `ESC` to quit — **your progress is auto-saved**
-5. Open `/arcade` again to continue from where you left off
+5. Open `/game` again to continue from where you left off
 
 ### Commands
 
 | Command                 | Description                         |
 | ----------------------- | ----------------------------------- |
-| `/arcade`               | Open game selection menu            |
-| `/arcade-list`          | List all games (shows 💾 for saves) |
-| `/arcade-install <url>` | Install a game from a URL           |
+| `/game`               | Open game selection menu            |
+| `/game-list`          | List all games (shows 💾 for saves) |
+| `/game-install <url>` | Install a game from a URL           |
 
 ### Environment Variables
 
@@ -126,7 +126,7 @@ pi -e /path/to/pi-arcade-games
 ## Tips
 
 - Background long-running tasks with **Ctrl+B** before starting a game
-- All games auto-save on exit — just re-open `/arcade` to continue
+- All games auto-save on exit — just re-open `/game` to continue
 - After quitting a game, you return to the menu to pick another
 
 ## Writing Your Own Game 🛠️
@@ -154,7 +154,7 @@ npm run build
 ```
 pi-arcade-games/
 ├── extensions/
-│   ├── arcade.ts               # Main extension: menu, commands, /arcade
+│   ├── arcade.ts               # Main extension: menu, commands, /game
 │   └── games/
 │       ├── types.ts            # GameModule interface
 │       ├── ansi.ts             # Shared ANSI styling helpers
