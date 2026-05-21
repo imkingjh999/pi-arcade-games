@@ -30,14 +30,14 @@ Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi
 ## Install
 
 ```bash
-pi install npm:pi-game
+pi install npm:pi-arcade-games
 ```
 
 Or add to your Pi settings:
 
 ```json
 {
-  "packages": ["pi-game"]
+  "packages": ["pi-arcade-games"]
 }
 ```
 

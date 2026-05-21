@@ -480,7 +480,7 @@ npm publish            # publish to npm
 After publishing, anyone can install:
 
 ```bash
-pi install npm:pi-game
+pi install npm:pi-arcade-games
 ```
 
 ---
