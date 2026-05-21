@@ -514,7 +514,6 @@ const gameTicTacToe: GameModule = {
 		let state: GameState = createInitialState();
 		let comp: TicTacToeComponent | null = null;
 		let active = false;
-		let headlessActive = false;
 		let currentLang: Lang = "en";
 
 		function reconstruct(ctx: ExtensionContext) {
@@ -548,8 +547,6 @@ const gameTicTacToe: GameModule = {
 						: state.status === "draw"
 							? "Draw"
 							: "Game over";
-			headlessActive = false;
-			active = false;
 			pi.sendMessage({
 				customType: GAMEOVER_MSG,
 				content: `Game over: ${label}.`,
@@ -557,31 +554,6 @@ const gameTicTacToe: GameModule = {
 				details: getDetails(state),
 			});
 		};
-
-		// ── Chat board renderer ────────────────────────────────────────
-
-		function boardToChat(board: Cell[][], status?: GameStatus): string {
-			const pos = (r: number, c: number) => r * 3 + c + 1;
-			const lines: string[] = [];
-			for (let r = 0; r < 3; r++) {
-				const row = board[r]
-					.map((cell, c) => {
-						if (cell === "X") return " X ";
-						if (cell === "O") return " O ";
-						const p = pos(r, c);
-						return ` ${p} `;
-					})
-					.join("│");
-				lines.push(row);
-				if (r < 2) lines.push("───┼───┼───");
-			}
-			if (status && status !== "playing") {
-				if (status === "win_X") lines.push("\nYou (X) win!");
-				else if (status === "win_O") lines.push("\nI (O) win!");
-				else lines.push("\nDraw!");
-			}
-			return lines.join("\n");
-		}
 
 		// ── Message renderers ──────────────────────────────────────────
 
@@ -614,37 +586,6 @@ const gameTicTacToe: GameModule = {
 
 		pi.on("before_agent_start", async (event) => {
 			if (!active) return undefined;
-			if (headlessActive) {
-				return {
-					systemPrompt:
-						event.systemPrompt +
-						`
-
-## Tic-Tac-Toe — Chat Mode (you are Player O)
-
-A tic-tac-toe game is in progress. The human plays X via chat, you play O.
-
-### When human plays
-When the human tells you where to place X, use the \`arcade_ttt_play\` tool with the position number (1-9).
-
-### Your turn
-When it's O's turn, use the \`arcade_ttt\` tool to move your cursor and place O.
-Your cursor is at (${state.agentCursorRow}, ${state.agentCursorCol}). Emit ALL move_* + play calls in ONE response.
-
-### Strategy
-1. Win if you can (two O's in a line with empty third).
-2. Block X if they can win.
-3. Prefer center → corners → edges.
-
-### Board positions
- 1 │ 2 │ 3
-────┼─────┼────
- 4 │ 5 │ 6
-────┼─────┼────
- 7 │ 8 │ 9
-`,
-				};
-			}
 			return {
 				systemPrompt:
 					event.systemPrompt +
@@ -713,6 +654,8 @@ Your cursor is at (${state.agentCursorRow}, ${state.agentCursorCol}). Emit ALL m
 		};
 
 		// ── Agent tools ────────────────────────────────────────────────
+
+		type Action = "move_up" | "move_down" | "move_left" | "move_right" | "play";
 
 		pi.registerTool({
 			name: "arcade_ttt",
@@ -842,109 +785,6 @@ Your cursor is at (${state.agentCursorRow}, ${state.agentCursorCol}). Emit ALL m
 				return expanded && d
 					? new BannerMsg(sum, d, true, theme)
 					: new Text(sum, 0, 0);
-			},
-		});
-
-		// ── Headless / Chat tools (Slack-compatible) ─────────────────
-
-		pi.registerTool({
-			name: "arcade_ttt_start",
-			label: "Start Tic-Tac-Toe (Chat)",
-			description:
-				"Start a new tic-tac-toe game in chat/Slack mode. The human is X, you are O. Show the board and ask the human where to play (positions 1-9, like a phone keypad). Only call this when the human asks to play tic-tac-toe.",
-			promptSnippet: "Start a tic-tac-toe game",
-			parameters: Type.Object({}),
-			async execute() {
-				state = createInitialState();
-				headlessActive = true;
-				active = true;
-				pi.appendEntry(SAVE_TYPE, getDetails(state));
-				return {
-					content: [
-						{
-							type: "text",
-							text: `Game started! You are ❌ X, I am ⭕ O.\n\n${boardToChat(state.board)}\n\nAsk the human where to place X (1-9).`,
-						},
-					],
-					details: getDetails(state),
-				};
-			},
-			renderCall(_args, theme) {
-				return new Text(
-					theme.fg("toolTitle", theme.bold("🎮 Start Tic-Tac-Toe")),
-					0,
-					0,
-				);
-			},
-			renderResult(result, _opts, theme) {
-				const text =
-					result.content[0]?.type === "text" ? result.content[0].text : "";
-				return new Text(
-					theme.fg("success", "✓ ") + theme.fg("muted", text.split("\n")[0]),
-					0,
-					0,
-				);
-			},
-		});
-
-		pi.registerTool({
-			name: "arcade_ttt_play",
-			label: "Play X Move (Chat)",
-			description:
-				"Place X (the human's mark) at a position on the tic-tac-toe board. Use this when the human tells you where they want to play. Positions 1-9 like a phone keypad: top-left=1, center=5, bottom-right=9.",
-			promptSnippet: "Place X on the tic-tac-toe board",
-			parameters: Type.Object({
-				position: Type.Number({
-					minimum: 1,
-					maximum: 9,
-					description: "Board position 1-9 (top-left to bottom-right)",
-				}),
-			}),
-			async execute(_id, params) {
-				if (!headlessActive)
-					throw new Error("No active chat game. Call arcade_ttt_start first.");
-				if (state.status !== "playing") throw new Error("Game is over.");
-				if (state.currentTurn !== "X") throw new Error("Not X's turn.");
-
-				const row = Math.floor((params.position - 1) / 3);
-				const col = (params.position - 1) % 3;
-				if (state.board[row][col] !== " ")
-					throw new Error(`Position ${params.position} is already taken.`);
-
-				state.board[row][col] = "X";
-				state.status = checkWin(state.board);
-				if (state.status === "playing") state.currentTurn = "O";
-
-				let text = `X placed at position ${params.position}.\n\n${boardToChat(state.board, state.status)}`;
-				if (state.status !== "playing") {
-					headlessActive = false;
-					active = false;
-				} else {
-					text += "\n\nMy turn! Let me think...";
-				}
-
-				pi.appendEntry(SAVE_TYPE, getDetails(state));
-				return {
-					content: [{ type: "text", text }],
-					details: getDetails(state),
-				};
-			},
-			renderCall(args, theme) {
-				return new Text(
-					theme.fg("toolTitle", theme.bold("🎮 Play X ")) +
-						theme.fg("muted", `(pos ${args.position ?? ""})`),
-					0,
-					0,
-				);
-			},
-			renderResult(result, _opts, theme) {
-				const text =
-					result.content[0]?.type === "text" ? result.content[0].text : "";
-				return new Text(
-					theme.fg("success", "✓ ") + theme.fg("muted", text.split("\n")[0]),
-					0,
-					0,
-				);
 			},
 		});
 
