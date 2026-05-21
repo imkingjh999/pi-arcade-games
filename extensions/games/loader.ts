@@ -254,7 +254,7 @@ function urlToFilename(url: string): string {
 function httpGet(url: string): Promise<string> {
 	return new Promise((resolve, reject) => {
 		https
-			.get(url, { headers: { "User-Agent": "pi-game/1.0" } }, (res) => {
+			.get(url, { headers: { "User-Agent": "pi-arcade-games/1.0" } }, (res) => {
 				if (
 					res.statusCode &&
 					res.statusCode >= 300 &&
