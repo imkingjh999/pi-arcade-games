@@ -132,9 +132,13 @@ function runInTerminal<T>(
 			process.stdout.write(out);
 		}
 
-		function onData(buf: Buffer) {
-			if (resolved) return;
-			const data = buf.toString();
+		// Escape sequence buffer: arrow keys send multi-byte sequences like \x1b[A.
+		// In raw mode, these may arrive as separate chunks (\x1b then [A).
+		// We buffer \x1b for a short time to see if more bytes follow.
+		let escBuf = "";
+		let escTimer: ReturnType<typeof setTimeout> | null = null;
+
+		function processInput(data: string) {
 			if (data === "\x03") {
 				if (!resolved) {
 					resolved = true;
@@ -144,8 +148,33 @@ function runInTerminal<T>(
 				return;
 			}
 			component.handleInput?.(data);
-			// Note: don't call doRender() here — handleInput triggers requestRender()
-			// which schedules doRender via microtask. Direct call would cause double-render.
+		}
+
+		function onData(buf: Buffer) {
+			if (resolved) return;
+			const data = buf.toString();
+
+			// If we have a pending escape buffer, append new data and flush
+			if (escBuf) {
+				if (escTimer) { clearTimeout(escTimer); escTimer = null; }
+				const full = escBuf + data;
+				escBuf = "";
+				processInput(full);
+				return;
+			}
+
+			// Start buffering if data begins with ESC and might be a sequence
+			if (data === "\x1b") {
+				escBuf = data;
+				escTimer = setTimeout(() => {
+					escTimer = null;
+					escBuf = "";
+					processInput("\x1b"); // standalone ESC
+				}, 30);
+				return;
+			}
+
+			processInput(data);
 		}
 
 		function onResize() {
@@ -153,6 +182,8 @@ function runInTerminal<T>(
 		}
 
 		function cleanup() {
+			if (escTimer) { clearTimeout(escTimer); escTimer = null; }
+			escBuf = "";
 			process.stdin.removeListener("data", onData);
 			process.stdout.removeListener("resize", onResize);
 			process.stdin.setRawMode(false);
