@@ -1,6 +1,6 @@
 {
   "name": "pi-arcade-games",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Retro terminal arcade for Pi - play games while you wait for builds and tests",
   "keywords": [
     "pi-package"
