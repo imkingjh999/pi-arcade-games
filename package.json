@@ -6,6 +6,9 @@
     "pi-package"
   ],
   "type": "module",
+  "bin": {
+    "pi-arcade-games": "dist/cli.js"
+  },
   "main": "dist/extensions/arcade.js",
   "files": [
     "dist",
@@ -36,6 +39,7 @@
     "@sinclair/typebox": "^0.34.49"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "typescript": "^6.0.3"
   }
 }

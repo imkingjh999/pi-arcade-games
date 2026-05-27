@@ -13,6 +13,6 @@
     "rootDir": ".",
     "jsx": "react-jsx"
   },
-  "include": ["extensions/**/*.ts", "extensions/**/*.tsx"],
+  "include": ["extensions/**/*.ts", "extensions/**/*.tsx", "cli.ts"],
   "exclude": ["node_modules"]
 }

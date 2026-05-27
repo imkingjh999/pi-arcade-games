@@ -53,6 +53,8 @@ Just select the game with 💾 and you're back in action. No manual saving neede
 
 ## Install
 
+### Pi Agent
+
 ```bash
 pi install npm:pi-arcade-games
 ```
@@ -64,6 +66,18 @@ Or add to your Pi settings:
   "packages": ["pi-arcade-games"]
 }
 ```
+
+### Standalone CLI (npx)
+
+Play directly in your terminal — no Pi agent needed:
+
+```bash
+npx pi-arcade-games          # Show game menu
+npx pi-arcade-games snake    # Jump straight to a game
+npx pi-arcade-games tetris   # Play Tetris immediately
+```
+
+Saves are stored in `~/.pi-arcade/`.
 
 <details>
 <summary>Local install (for development)</summary>
