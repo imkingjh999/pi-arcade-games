@@ -7,7 +7,7 @@
  *   npx pi-arcade-games snake    # Jump straight to a game
  */
 
-import { matchesKey, visibleWidth } from "@earendil-works/pi-tui";
+import { matchesKey, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
 import { join } from "node:path";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
@@ -124,9 +124,15 @@ function runInTerminal<T>(
 			const width = process.stdout.columns || 80;
 			const height = process.stdout.rows || 24;
 			const lines = component.render(width);
-			while (lines.length < height) lines.push("");
+			// Truncate each line to terminal width to prevent auto-wrapping
+			// and pad to fill screen height
+			const result: string[] = [];
+			for (let i = 0; i < height; i++) {
+				const line = i < lines.length ? truncateToWidth(lines[i], width) : "";
+				result.push(line);
+			}
 			let out = "\x1b[H";
-			for (const line of lines) {
+			for (const line of result) {
 				out += line + "\n";
 			}
 			process.stdout.write(out);
@@ -156,7 +162,10 @@ function runInTerminal<T>(
 
 			// If we have a pending escape buffer, append new data and flush
 			if (escBuf) {
-				if (escTimer) { clearTimeout(escTimer); escTimer = null; }
+				if (escTimer) {
+					clearTimeout(escTimer);
+					escTimer = null;
+				}
 				const full = escBuf + data;
 				escBuf = "";
 				processInput(full);
@@ -182,7 +191,10 @@ function runInTerminal<T>(
 		}
 
 		function cleanup() {
-			if (escTimer) { clearTimeout(escTimer); escTimer = null; }
+			if (escTimer) {
+				clearTimeout(escTimer);
+				escTimer = null;
+			}
 			escBuf = "";
 			process.stdin.removeListener("data", onData);
 			process.stdout.removeListener("resize", onResize);
