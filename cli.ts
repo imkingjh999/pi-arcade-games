@@ -144,7 +144,8 @@ function runInTerminal<T>(
 				return;
 			}
 			component.handleInput?.(data);
-			doRender();
+			// Note: don't call doRender() here — handleInput triggers requestRender()
+			// which schedules doRender via microtask. Direct call would cause double-render.
 		}
 
 		function onResize() {
@@ -188,6 +189,7 @@ function createMockCtx() {
 		},
 		sessionManager: {
 			getEntries: () => loadEntries(),
+			getBranch: () => [],
 		},
 	};
 }
@@ -269,8 +271,7 @@ class LangSelectComponent implements Component {
 			this.onCancel();
 			return true;
 		}
-		if (matchesKey(data, "up") && this.selectedIndex > 0)
-			this.selectedIndex--;
+		if (matchesKey(data, "up") && this.selectedIndex > 0) this.selectedIndex--;
 		else if (matchesKey(data, "down") && this.selectedIndex < 1)
 			this.selectedIndex++;
 		else if (matchesKey(data, "return") || data === " ") {
@@ -391,9 +392,7 @@ class GameIntroComponent implements Component {
 				width,
 			),
 		);
-		const innerTitle = BOLD(
-			`${this.gameName} - ${t("introTitle", this.lang)}`,
-		);
+		const innerTitle = BOLD(`${this.gameName} - ${t("introTitle", this.lang)}`);
 		lines.push(
 			centerPad(
 				BOLD_CYAN("│") + centerPad(innerTitle, 38) + BOLD_CYAN("│"),
@@ -511,12 +510,8 @@ class ArcadeMenuComponent implements Component {
 			this.onClose();
 			return true;
 		}
-		if (matchesKey(data, "up") && this.selectedIndex > 0)
-			this.selectedIndex--;
-		else if (
-			matchesKey(data, "down") &&
-			this.selectedIndex < GAMES.length - 1
-		)
+		if (matchesKey(data, "up") && this.selectedIndex > 0) this.selectedIndex--;
+		else if (matchesKey(data, "down") && this.selectedIndex < GAMES.length - 1)
 			this.selectedIndex++;
 		else if (matchesKey(data, "return") || data === " ") {
 			if (this.digitBuf) {
@@ -526,15 +521,11 @@ class ArcadeMenuComponent implements Component {
 			if (GAMES[this.selectedIndex]) this.onSelect(GAMES[this.selectedIndex]);
 			return true;
 		} else if (matchesKey(data, "home")) this.selectedIndex = 0;
-		else if (matchesKey(data, "end"))
-			this.selectedIndex = GAMES.length - 1;
+		else if (matchesKey(data, "end")) this.selectedIndex = GAMES.length - 1;
 		else if (matchesKey(data, "pageUp"))
 			this.selectedIndex = Math.max(0, this.selectedIndex - 9);
 		else if (matchesKey(data, "pageDown"))
-			this.selectedIndex = Math.min(
-				GAMES.length - 1,
-				this.selectedIndex + 9,
-			);
+			this.selectedIndex = Math.min(GAMES.length - 1, this.selectedIndex + 9);
 		else if (data.length === 1 && data >= "0" && data <= "9") {
 			this.digitBuf += data;
 			const num = parseInt(this.digitBuf, 10);
@@ -583,10 +574,7 @@ class ArcadeMenuComponent implements Component {
 
 		const gameNames = GAMES.map((g) => getGameName(g.meta.id, lang));
 		const gameDescs = GAMES.map((g) => getGameDesc(g.meta.id, lang));
-		const maxDescLen = Math.max(
-			...gameDescs.map((d) => visibleWidth(d)),
-			1,
-		);
+		const maxDescLen = Math.max(...gameDescs.map((d) => visibleWidth(d)), 1);
 		const numWidth = String(GAMES.length).length;
 
 		const gameLines: string[] = [];
@@ -596,9 +584,7 @@ class ArcadeMenuComponent implements Component {
 			const hasSave = this.savedGames.has(g.meta.id);
 			const prefix = selected ? `${BOLD_GREEN(">")}` : " ";
 			const numStr = String(i + 1).padStart(numWidth);
-			const num = selected
-				? BOLD_GREEN(`[${numStr}]`)
-				: DIM(`[${numStr}]`);
+			const num = selected ? BOLD_GREEN(`[${numStr}]`) : DIM(`[${numStr}]`);
 			const name = selected
 				? BOLD(padEndVisible(gameNames[i], 15))
 				: padEndVisible(gameNames[i], 15);
@@ -607,32 +593,23 @@ class ArcadeMenuComponent implements Component {
 				: DIM(padEndVisible(gameDescs[i], maxDescLen));
 			const saveBadge = hasSave ? BOLD_YELLOW(" 💾") : "";
 			const sep = DIM(" ··· ");
-			gameLines.push(
-				`${prefix} ${num}  ${name}${sep}${desc}${saveBadge}`,
-			);
+			gameLines.push(`${prefix} ${num}  ${name}${sep}${desc}${saveBadge}`);
 		}
 
-		const maxGameLineWidth = Math.max(
-			...gameLines.map((l) => visibleWidth(l)),
-		);
-		const gameLeftPad = Math.max(
-			0,
-			Math.floor((width - maxGameLineWidth) / 2),
-		);
+		const maxGameLineWidth = Math.max(...gameLines.map((l) => visibleWidth(l)));
+		const gameLeftPad = Math.max(0, Math.floor((width - maxGameLineWidth) / 2));
 		for (const line of gameLines) {
 			lines.push(" ".repeat(gameLeftPad) + line);
 		}
 
-		const savedNames = GAMES.filter((g) =>
-			this.savedGames.has(g.meta.id),
-		).map((g) => getGameName(g.meta.id, lang));
+		const savedNames = GAMES.filter((g) => this.savedGames.has(g.meta.id)).map(
+			(g) => getGameName(g.meta.id, lang),
+		);
 		if (savedNames.length > 0) {
 			lines.push("");
 			lines.push(
 				centerPad(
-					YELLOW(
-						`💾 ${t("continueLabel", lang)} ${savedNames.join(", ")}`,
-					),
+					YELLOW(`💾 ${t("continueLabel", lang)} ${savedNames.join(", ")}`),
 					width,
 				),
 			);
@@ -706,9 +683,7 @@ async function main() {
 		);
 		if (!entry) {
 			console.error(`Game not found: ${arg}`);
-			console.error(
-				`Available: ${GAMES.map((g) => g.meta.id).join(", ")}`,
-			);
+			console.error(`Available: ${GAMES.map((g) => g.meta.id).join(", ")}`);
 			process.exit(1);
 		}
 		const ctx = createMockCtx();
@@ -751,25 +726,22 @@ async function main() {
 	// Game menu loop
 	while (true) {
 		const savedGameIds = detectSavedGames();
-		const selection = await runInTerminal<GameEntry | null>(
-			(tui, done) => {
-				return new ArcadeMenuComponent(
-					tui,
-					() => done(null),
-					(game) => done(game),
-					savedGameIds,
-					prefs.lang,
-				);
-			},
-		);
+		const selection = await runInTerminal<GameEntry | null>((tui, done) => {
+			return new ArcadeMenuComponent(
+				tui,
+				() => done(null),
+				(game) => done(game),
+				savedGameIds,
+				prefs.lang,
+			);
+		});
 		if (!selection?.handler) break;
 
 		// Show intro for first-time games
 		const isVisited = prefs.visitedGames.includes(selection.meta.id);
 		if (!isVisited && selection.module?.intro) {
 			const introText =
-				selection.module.intro[prefs.lang] ||
-				selection.module.intro.en;
+				selection.module.intro[prefs.lang] || selection.module.intro.en;
 			const gameName = getGameName(selection.meta.id, prefs.lang);
 			const shouldStart = await runInTerminal<boolean>((tui, done) => {
 				return new GameIntroComponent(
