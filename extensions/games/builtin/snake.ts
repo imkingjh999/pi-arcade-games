@@ -265,7 +265,7 @@ class SnakeComponent implements _Component {
 		if (this.paused)
 			footer = `${BOLD_YELLOW(gui("paused", this.lang))} ${gui("anyKeyContinue", this.lang)}, ${BOLD(gui("quit", this.lang))}`;
 		else if (this.state.gameOver)
-			footer = `${BOLD_RED(gui("gameOver", this.lang))} ${BOLD("R")} ${gui("restart", this.lang)}, ${BOLD(gui("quit", this.lang))}`;
+			footer = `${BOLD_RED(gui("gameOver", this.lang))} ${BOLD("R")} ${gui("restartAction", this.lang)}, ${BOLD("ESC")} ${gui("quitAction", this.lang)}`;
 		else
 			footer = `${gui("move", this.lang)}/WASD ${gui("moveAction", this.lang)}, ${BOLD("ESC")} ${gui("paused", this.lang)}, ${BOLD(gui("quit", this.lang))}`;
 		lines.push(padLine(boxLine(footer)));

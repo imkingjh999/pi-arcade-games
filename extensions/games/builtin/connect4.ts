@@ -385,7 +385,7 @@ class ConnectFourComponent implements _Component {
 		lines.push("");
 		let footer: string;
 		if (s.status !== "playing")
-			footer = `${BOLD("R")} ${gui("restart", this.lang)}  ${DIM("|")}  ${BOLD("ESC")} ${gui("quit", this.lang)}`;
+			footer = `${BOLD("R")} ${gui("restartAction", this.lang)}  ${DIM("|")}  ${BOLD("ESC")} ${gui("quitAction", this.lang)}`;
 		else if (s.aiThinking)
 			footer = DIM(gui("pleaseWait", this.lang));
 		else
