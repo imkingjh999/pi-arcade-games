@@ -7,7 +7,11 @@
  *   npx pi-arcade-games snake    # Jump straight to a game
  */
 
-import { matchesKey, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
+import {
+	matchesKey,
+	visibleWidth,
+	truncateToWidth,
+} from "@earendil-works/pi-tui";
 import { join } from "node:path";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
@@ -132,8 +136,9 @@ function runInTerminal<T>(
 				result.push(line);
 			}
 			let out = "\x1b[H";
-			for (const line of result) {
-				out += line + "\n";
+			for (let i = 0; i < result.length; i++) {
+				out += result[i] + "\x1b[K";
+				if (i < result.length - 1) out += "\n";
 			}
 			process.stdout.write(out);
 		}
@@ -701,7 +706,9 @@ async function main() {
 		process.exit(1);
 	}
 
-	const arg = process.argv[2]?.trim().toLowerCase();
+	const args = process.argv.slice(2).map((a) => a.trim().toLowerCase());
+	const forceLang = args.includes("--lang");
+	const gameArg = args.find((a) => !a.startsWith("--"));
 
 	// Load all builtin games
 	const modules = await loadBuiltinGames();
@@ -720,12 +727,12 @@ async function main() {
 	GAMES.sort((a, b) => a.meta.id.localeCompare(b.meta.id));
 
 	// Direct game launch via argument
-	if (arg) {
+	if (gameArg) {
 		const entry = GAMES.find(
-			(g) => g.meta.id === arg || g.meta.name.toLowerCase() === arg,
+			(g) => g.meta.id === gameArg || g.meta.name.toLowerCase() === gameArg,
 		);
 		if (!entry) {
-			console.error(`Game not found: ${arg}`);
+			console.error(`Game not found: ${gameArg}`);
 			console.error(`Available: ${GAMES.map((g) => g.meta.id).join(", ")}`);
 			process.exit(1);
 		}
@@ -752,8 +759,8 @@ async function main() {
 		}
 	}
 
-	// First run: language selection
-	if (!hasPrefs) {
+	// First run or --lang flag: language selection
+	if (!hasPrefs || forceLang) {
 		const lang = await runInTerminal<Lang | null>((tui, done) => {
 			return new LangSelectComponent(
 				tui,

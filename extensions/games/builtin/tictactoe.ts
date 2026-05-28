@@ -404,7 +404,7 @@ class TicTacToeComponent implements _Component {
 		lines.push("", "");
 		let footer: string;
 		if (this.state.status !== "playing")
-			footer = `${BOLD("R")} ${gui("restart", this.lang)}  ${DIM("|")}  ${BOLD("ESC")} ${gui("quit", this.lang)}`;
+			footer = `${BOLD("R")} ${gui("restartAction", this.lang)}  ${DIM("|")}  ${BOLD("ESC")} ${gui("quitAction", this.lang)}`;
 		else if (this.state.currentTurn !== "X")
 			footer = DIM(gui("thinking", this.lang));
 		else
