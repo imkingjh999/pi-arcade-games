@@ -64,14 +64,16 @@ function createInitialState(ew: number): GameState {
 }
 
 function spawnFood(snake: Point[], width: number): Point {
-	let food: Point;
-	do {
-		food = {
-			x: Math.floor(Math.random() * width),
-			y: Math.floor(Math.random() * GAME_HEIGHT),
-		};
-	} while (snake.some((s) => s.x === food.x && s.y === food.y));
-	return food;
+	// Collect every free cell first; if the board is full, return an
+	// off-board point instead of looping forever.
+	const empty: Point[] = [];
+	for (let x = 0; x < width; x++) {
+		for (let y = 0; y < GAME_HEIGHT; y++) {
+			if (!snake.some((s) => s.x === x && s.y === y)) empty.push({ x, y });
+		}
+	}
+	if (empty.length === 0) return { x: -1, y: -1 };
+	return empty[Math.floor(Math.random() * empty.length)];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -81,6 +83,7 @@ function spawnFood(snake: Point[], width: number): Point {
 class SnakeComponent implements _Component {
 	private state: GameState | null = null;
 	private interval: ReturnType<typeof setInterval> | null = null;
+	private disposed = false;
 	private onClose: () => void;
 	private onSave: (s: GameState | null) => void;
 	private tui: { requestRender: () => void };
@@ -126,7 +129,7 @@ class SnakeComponent implements _Component {
 	}
 
 	private tick() {
-		if (!this.state) return;
+		if (this.disposed || !this.state) return;
 		this.state.direction = this.state.nextDirection;
 		const head = this.state.snake[0];
 		const d = this.state.direction;
@@ -277,6 +280,7 @@ class SnakeComponent implements _Component {
 	}
 
 	dispose() {
+		this.disposed = true;
 		if (this.interval) {
 			clearInterval(this.interval);
 			this.interval = null;

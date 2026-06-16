@@ -47,14 +47,16 @@ function createInitialState(ew: number): GameState {
 }
 
 function spawnFood(snake: Point[], width: number): Point {
-	let food: Point;
-	do {
-		food = {
-			x: Math.floor(Math.random() * width),
-			y: Math.floor(Math.random() * GAME_HEIGHT),
-		};
-	} while (snake.some((s) => s.x === food.x && s.y === food.y));
-	return food;
+	// Collect every free cell first; if the board is full, return an
+	// off-board point instead of looping forever.
+	const empty: Point[] = [];
+	for (let x = 0; x < width; x++) {
+		for (let y = 0; y < GAME_HEIGHT; y++) {
+			if (!snake.some((s) => s.x === x && s.y === y)) empty.push({ x, y });
+		}
+	}
+	if (empty.length === 0) return { x: -1, y: -1 };
+	return empty[Math.floor(Math.random() * empty.length)];
 }
 
 function tick(state: GameState, effectiveWidth: number): void {
@@ -193,6 +195,17 @@ test("spawnFood never places food on snake body", () => {
 			`Food spawned on snake at (${food.x},${food.y})`,
 		);
 	}
+});
+
+test("spawnFood returns off-board point when board is full (no infinite loop)", () => {
+	// Fill a tiny 10-wide board completely (10 * GAME_HEIGHT cells)
+	const w = 10;
+	const snake: Point[] = [];
+	for (let x = 0; x < w; x++)
+		for (let y = 0; y < GAME_HEIGHT; y++) snake.push({ x, y });
+	const food = spawnFood(snake, w);
+	assert.equal(food.x, -1);
+	assert.equal(food.y, -1);
 });
 
 test("spawnFood places within bounds", () => {

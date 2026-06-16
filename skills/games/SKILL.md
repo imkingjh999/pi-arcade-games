@@ -1,5 +1,5 @@
 ---
-description: Retro terminal arcade - play Snake, 2048, Minesweeper, Wordle, Hangman, Tic-Tac-Toe, Gomoku, Tetris, Breakout, Memory, Sudoku, Connect Four, Reversi, Sliding Puzzle, Battleship, Pong, Lights Out, and Typing Test directly in your terminal.
+description: Retro terminal arcade - play Snake, 2048, Minesweeper, Wordle, Hangman, Tic-Tac-Toe, Tetris, Breakout, Memory, Sudoku, Connect Four, Reversi, Sliding Puzzle, Battleship, Pong, Lights Out, and Typing Test directly in your terminal.
 ---
 
 # Pi Arcade / 街机游戏
@@ -19,7 +19,7 @@ Open the retro terminal arcade with `/game`. All games auto-save on exit — re-
 All games support / 所有游戏支持:
 
 - Arrow keys for navigation/movement / 方向键导航/移动
-- `ESC` / `Q` to quit (progress auto-saved) / 退出（自动存档）
+- `ESC` to quit (progress auto-saved) / 退出（自动存档）
 - `R` to restart after game over / 游戏结束后重新开始
 
 ## Tips / 提示
@@ -39,7 +39,6 @@ All games support / 所有游戏支持:
 | **Snake**          | WASD or arrow keys, `ESC` to pause / WASD 或方向键，`ESC` 暂停                         |
 | **Tetris**         | Arrow keys to move/rotate, `SPACE` for hard drop / 方向键移动旋转，`空格` 硬降         |
 | **Breakout**       | ←→ to move paddle, break all bricks / 左右移动挡板，打碎所有砖块                       |
-| **Gomoku**         | Arrow keys to move cursor, `ENTER` to place stone / 方向键移动，`ENTER` 落子，五子连珠 |
 | **Memory**         | Arrow keys + `SPACE` to flip cards, find matching pairs / 方向键+`空格` 翻牌配对       |
 | **Tic-Tac-Toe**    | Arrow keys to move cursor, `ENTER` to place ✕ / 方向键移动，`ENTER` 落子，对战AI       |
 | **Sudoku**         | Arrow keys to move, `1-9` to fill, `DEL` to clear / 方向键移动，`1-9` 填数，`DEL` 清除 |

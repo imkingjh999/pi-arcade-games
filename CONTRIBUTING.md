@@ -225,7 +225,6 @@ extensions/games/
 │   ├── breakout.ts
 │   ├── connect4.ts
 │   ├── fifteen.ts
-│   ├── gomoku.ts
 │   ├── hangman.ts
 │   ├── lightsout.ts
 │   ├── memory.ts

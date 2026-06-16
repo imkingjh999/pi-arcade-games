@@ -9,6 +9,7 @@ import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { type Component, matchesKey } from "@earendil-works/pi-tui";
 import type { GameModule } from "../types.js";
 import { type Lang, getLang, gui } from "../i18n.js";
+import { isValidSquareBoard } from "../save.js";
 import {
 	BOLD,
 	DIM,
@@ -471,7 +472,29 @@ const gameSudoku: GameModule = {
 			}
 
 			const lang = getLang(ctx);
-			const state: GameState = createInitialState();
+
+			// Restore saved state (resumable in-progress puzzle)
+			const entries = ctx.sessionManager.getEntries();
+			let state: GameState | undefined;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === SAVE_TYPE) {
+					const saved = e.data as GameState | null;
+					if (
+						saved &&
+						!saved.gameOver &&
+						!saved.selectingDifficulty &&
+						isValidSquareBoard(saved.board, 9) &&
+						isValidSquareBoard(saved.given, 9) &&
+						isValidSquareBoard(saved.solution, 9)
+					) {
+						state = saved;
+						state.startTime = Date.now() - state.elapsed;
+					}
+					break;
+				}
+			}
+			if (!state) state = createInitialState();
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new SudokuComponent(

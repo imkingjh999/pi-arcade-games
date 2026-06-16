@@ -132,8 +132,25 @@ class MemoryComponent implements _Component {
 		this.onClose = onClose;
 		this.onSave = onSave;
 		this.lang = lang;
-		if (saved && !saved.gameOver) {
+		if (
+			saved &&
+			!saved.gameOver &&
+			Array.isArray(saved.cards) &&
+			saved.cards.length === GRID_COLS * GRID_ROWS
+		) {
 			this.state = saved;
+			// Recover from a save taken mid-mismatch-wait: clear the pending
+			// pair so the board is not stuck (flipCard early-returns while
+			// waiting, which would otherwise deadlock the restored game).
+			if (this.state.waiting) {
+				this.state.waiting = false;
+				if (this.state.firstPick !== null)
+					this.state.cards[this.state.firstPick].flipped = false;
+				if (this.state.secondPick !== null)
+					this.state.cards[this.state.secondPick].flipped = false;
+				this.state.firstPick = null;
+				this.state.secondPick = null;
+			}
 		} else {
 			this.state = createInitialState();
 			if (saved) this.state.bestScore = saved.bestScore;

@@ -4,7 +4,7 @@ Retro terminal arcade for [Pi coding agent](https://github.com/earendil-works/pi
 
 ![Pi Arcade Games Demo](https://raw.githubusercontent.com/imkingjh999/pi-arcade-games/main/docs/demo.gif)
 
-**18 games** built in — with bilingual (English / 中文) menu support and **auto-save**.
+**17 games** built in — with bilingual (English / 中文) menu support and **auto-save**.
 
 ## 💾 Auto-Save
 
@@ -36,7 +36,6 @@ Just select the game with 💾 and you're back in action. No manual saving neede
 | **Battleship**     | Naval combat vs AI                          |
 | **Breakout**       | Break bricks with ball and paddle           |
 | **Connect Four**   | Drop discs, get 4 in a row vs AI            |
-| **Gomoku**         | Five in a row strategy game                 |
 | **Hangman**        | Guess the hidden word one letter at a time  |
 | **Lights Out**     | Toggle all lights off                       |
 | **Memory**         | Flip & match card pairs                     |
@@ -95,7 +94,7 @@ pi -e /path/to/pi-arcade-games
 1. Type `/game` in Pi to open the game menu
 2. First launch picks your language (English / 中文) — remembered for next time
 3. Pick a game with arrow keys + `ENTER` and start playing
-4. Press `Q` or `ESC` to quit — **your progress is auto-saved**
+4. Press `ESC` to quit — **your progress is auto-saved**
 5. Open `/game` again to continue from where you left off
 
 ### Commands
@@ -117,12 +116,11 @@ pi -e /path/to/pi-arcade-games
 
 | Game               | Controls                                        |
 | ------------------ | ----------------------------------------------- |
-| **All**            | `Q` / `ESC` quit, `R` restart (after game over) |
+| **All**            | `ESC` quit, `R` restart (after game over) |
 | **2048**           | Arrow keys to slide & merge                     |
 | **Battleship**     | Arrow keys + `ENTER` to place ships and fire    |
 | **Breakout**       | ←→ to move paddle                               |
 | **Connect Four**   | ←→ to select column, `ENTER` to drop disc       |
-| **Gomoku**         | Arrow keys to move, `ENTER` to place stone      |
 | **Hangman**        | Type any letter to guess                        |
 | **Lights Out**     | Arrow keys + `ENTER` to toggle lights           |
 | **Memory**         | Arrow keys + `SPACE` to flip cards              |
@@ -174,13 +172,12 @@ pi-arcade-games/
 │       ├── ansi.ts             # Shared ANSI styling helpers
 │       ├── i18n.ts             # Internationalization (en/zh)
 │       ├── loader.ts           # Game loader (builtin/remote/local)
-│       └── builtin/            # 18 bundled games
+│       └── builtin/            # 17 bundled games
 │           ├── 2048.ts
 │           ├── battleship.ts
 │           ├── breakout.ts
 │           ├── connect4.ts
 │           ├── fifteen.ts      # Sliding Puzzle
-│           ├── gomoku.ts
 │           ├── hangman.ts
 │           ├── lightsout.ts
 │           ├── memory.ts

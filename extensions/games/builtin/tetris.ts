@@ -438,21 +438,6 @@ class TetrisComponent implements _Component {
 
 		lines.push(padLine(boxBot));
 
-		// Next piece preview
-		const nextLines: string[] = [];
-		if (this.state.next) {
-			const n = this.state.next;
-			nextLines.push(`Next: `);
-			for (let r = 0; r < n.shape.length; r++) {
-				let nl = "  ";
-				for (let c = 0; c < n.shape[r].length; c++) {
-					if (n.shape[r][c]) nl += SHAPE_COLORS[n.type - 1]("██");
-					else nl += "  ";
-				}
-				nextLines.push(nl);
-			}
-		}
-
 		// Footer
 		let footer: string;
 		if (this.paused) {

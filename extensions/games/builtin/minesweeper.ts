@@ -248,7 +248,7 @@ class MinesweeperComponent implements _Component {
 					else {
 						const clr = NUM_COLORS[n] ?? "0";
 						content = isCursor
-							? `[${`\x1b[${clr}m${n}${RESET}`} ]`
+							? `[${`\x1b[${clr}m${n}${RESET}`}]`
 							: ` ${`\x1b[${clr}m${n}${RESET}`} `;
 					}
 				} else {

@@ -122,10 +122,6 @@ const GAME_I18N: Record<string, GameI18n> = {
 		name: { en: "Wordle", zh: "猜词" },
 		desc: { en: "5 letters, 6 tries", zh: "五字母六次猜" },
 	},
-	gomoku: {
-		name: { en: "Gomoku", zh: "五子棋" },
-		desc: { en: "Five in a row", zh: "五子连珠" },
-	},
 };
 
 export function getGameName(id: string, lang: Lang): string {
@@ -208,6 +204,7 @@ export const GAME_UI: Record<string, { en: string; zh: string }> = {
 	draw: { en: "Draw!", zh: "平局！" },
 	complete: { en: "🎉 COMPLETE!", zh: "🎉 完成！" },
 	thinking: { en: "Agent is thinking...", zh: "AI 思考中..." },
+	aiThinking: { en: "AI is thinking...", zh: "AI 思考中..." },
 	keepGoing: { en: "Keep going?", zh: "继续挑战？" },
 
 	// Labels
@@ -281,6 +278,7 @@ export const GAME_UI: Record<string, { en: string; zh: string }> = {
 	pleaseWait: { en: "Please wait...", zh: "请稍候..." },
 	turnAllOff: { en: "Turn all lights OFF", zh: "关灭所有灯" },
 	correctPos: { en: "correct", zh: "正确位置" },
+	wrongPos: { en: "wrong position", zh: "位置错" },
 	greenLabel: { en: "green", zh: "绿色" },
 
 	// Game-specific labels

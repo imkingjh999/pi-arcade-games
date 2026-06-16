@@ -508,7 +508,6 @@ const gameTicTacToe: GameModule = {
 	intro: INTRO,
 
 	register(pi, registerMenuEntry) {
-		const SAVE_TYPE = "ttt-save";
 		const MOVE_MSG = "ttt-move";
 		const GAMEOVER_MSG = "ttt-gameover";
 		let state: GameState = createInitialState();

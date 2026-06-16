@@ -13,7 +13,13 @@ import {
 	truncateToWidth,
 } from "@earendil-works/pi-tui";
 import { join } from "node:path";
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import {
+	mkdirSync,
+	readFileSync,
+	writeFileSync,
+	existsSync,
+	renameSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { loadBuiltinGames } from "./extensions/games/loader.js";
 import type { GameModule, GameMeta } from "./extensions/games/types.js";
@@ -35,6 +41,7 @@ import {
 	centerPad,
 	padEndVisible,
 } from "./extensions/games/ansi.js";
+import { isResumable } from "./extensions/games/save.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Storage — JSON files in ~/.pi-arcade/
@@ -58,16 +65,43 @@ function loadEntries(): Entry[] {
 	if (!existsSync(ENTRIES_FILE)) return [];
 	try {
 		return JSON.parse(readFileSync(ENTRIES_FILE, "utf-8"));
-	} catch {
+	} catch (err) {
+		// Back up the corrupt file instead of silently wiping every save on
+		// the next appendEntry (which would lose all games + prefs).
+		const backup = `${ENTRIES_FILE}.corrupt-${Date.now()}`;
+		try {
+			renameSync(ENTRIES_FILE, backup);
+			console.error(
+				`[pi-arcade] entries.json was corrupt; backed up to ${backup}`,
+			);
+		} catch {
+			console.error(`[pi-arcade] entries.json is corrupt:`, err);
+		}
 		return [];
 	}
 }
 
 function appendEntry(customType: string, data: unknown) {
 	const entries = loadEntries();
-	entries.push({ type: "custom", customType, data });
+	// Compact: keep only the latest entry per customType, then append the new
+	// one. This prevents entries.json from growing without bound across many
+	// sessions (only the most recent save/state per type ever matters).
+	const seen = new Set<string>();
+	const compacted: Entry[] = [];
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const e = entries[i];
+		if (e.type === "custom" && !seen.has(e.customType)) {
+			seen.add(e.customType);
+			compacted.unshift(e);
+		}
+	}
+	compacted.push({ type: "custom", customType, data });
 	ensureDataDir();
-	writeFileSync(ENTRIES_FILE, JSON.stringify(entries));
+	// Atomic write: write to a temp file then rename, so a crash mid-write
+	// never leaves a half-written (unparseable) entries.json.
+	const tmp = `${ENTRIES_FILE}.tmp-${process.pid}`;
+	writeFileSync(tmp, JSON.stringify(compacted));
+	renameSync(tmp, ENTRIES_FILE);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -206,10 +240,26 @@ function runInTerminal<T>(
 			process.stdin.setRawMode(false);
 			process.stdin.pause();
 			process.stdout.write(SHOW_CURSOR + ALT_SCREEN_OFF);
+			process.off("exit", onFatal);
+			process.off("SIGINT", onFatal);
+			process.off("SIGTERM", onFatal);
 		}
 
 		process.stdin.on("data", onData);
 		process.stdout.on("resize", onResize);
+
+		// Safety net: if the process is killed (SIGTERM/SIGINT from outside,
+		// or an uncaught exception triggers 'exit') while a game is on screen,
+		// restore the terminal so the user isn't left in raw mode + alt buffer.
+		const onFatal = () => {
+			if (resolved) return;
+			resolved = true;
+			cleanup();
+		};
+		process.once("exit", onFatal);
+		process.once("SIGINT", onFatal);
+		process.once("SIGTERM", onFatal);
+
 		doRender();
 	});
 }
@@ -282,8 +332,7 @@ function detectSavedGames(): string[] {
 		for (let i = entries.length - 1; i >= 0; i--) {
 			const e = entries[i];
 			if (e.type === "custom" && e.customType === game.saveType) {
-				const data = e.data as { gameOver?: boolean } | null;
-				if (data && !data.gameOver) {
+				if (isResumable(e.data)) {
 					savedIds.push(game.meta.id);
 				}
 				break;
@@ -697,7 +746,7 @@ class ArcadeMenuComponent implements Component {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Games that require Pi agent interaction and cannot run standalone */
-const AGENT_GAMES = new Set(["gomoku"]);
+const AGENT_GAMES = new Set(["tictactoe"]);
 
 async function main() {
 	if (!process.stdin.isTTY) {

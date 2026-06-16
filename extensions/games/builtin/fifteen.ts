@@ -11,7 +11,12 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { type Component, matchesKey } from "@earendil-works/pi-tui";
 import type { GameModule } from "../types.js";
-import { type Lang, getLang, gui } from "../i18n.js";
+import {
+	type Lang,
+	getLang,
+	gui,
+} from "../i18n.js";
+import { isValidSquareBoard } from "../save.js";
 import {
 	BOLD,
 	DIM,
@@ -422,7 +427,28 @@ const gameFifteen: GameModule = {
 			}
 
 			const lang = getLang(ctx);
-			const state = createInitialState();
+
+			// Restore saved state (resumable in-progress puzzle)
+			const entries = ctx.sessionManager.getEntries();
+			let state: GameState | undefined;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === SAVE_TYPE) {
+					const saved = e.data as GameState | null;
+					if (
+						saved &&
+						!saved.gameOver &&
+						!saved.selectingSize &&
+						isValidSquareBoard(saved.board, saved.gridSize)
+					) {
+						state = saved;
+						// Continue the timer from where we left off
+						state.startTime = Date.now() - state.elapsed;
+					}
+					break;
+				}
+			}
+			if (!state) state = createInitialState();
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new FifteenPuzzleComponent(

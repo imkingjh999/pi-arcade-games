@@ -105,6 +105,7 @@ class BreakoutComponent implements _Component {
 	private paused = false;
 	private started = false;
 	private effCols = COLS;
+	private disposed = false;
 
 	constructor(
 		tui: { requestRender: () => void },
@@ -129,7 +130,7 @@ class BreakoutComponent implements _Component {
 	private startTick() {
 		this.stopTick();
 		this.interval = setInterval(() => {
-			if (!this.state.gameOver && !this.paused) {
+			if (!this.disposed && !this.state.gameOver && !this.paused) {
 				this.tick();
 				this.version++;
 				this.tui.requestRender();
@@ -363,6 +364,7 @@ class BreakoutComponent implements _Component {
 	}
 
 	dispose() {
+		this.disposed = true;
 		this.stopTick();
 	}
 }

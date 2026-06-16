@@ -16,17 +16,21 @@ import type {
 	ExtensionCommandContext,
 } from "@earendil-works/pi-coding-agent";
 import type { GameModule, GameMeta } from "./types.js";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
+import * as os from "node:os";
 import { fileURLToPath } from "node:url";
 import * as path from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import * as http from "node:http";
 import * as https from "node:https";
 
 const BUILTIN_DIR = path.join(__dirname, "builtin");
-const CACHE_DIR = path.join(__dirname, "..", ".game-cache");
+// Cache remote games under the user's home dir (the package install dir may
+// be read-only when installed globally / via npx).
+const CACHE_DIR = path.join(os.homedir(), ".pi-arcade", "cache");
 
 /**
  * Load all builtin games from ./games/builtin/*.js
@@ -81,7 +85,7 @@ export async function fetchRemoteGame(url: string): Promise<GameModule> {
 		const mod = await import(uniquePath);
 		game = (mod.default ?? mod) as GameModule;
 	} finally {
-		// Clean up the unique copy
+		// Clean up the unique copy (best-effort; ignore errors)
 		try {
 			fs.unlinkSync(uniquePath);
 		} catch {}
@@ -125,8 +129,20 @@ export async function loadTsGame(tsPath: string): Promise<GameModule> {
 	);
 
 	// Compile with tsc (single file, ES module output)
-	execSync(
-		`npx tsc --outDir "${path.dirname(outJs)}}" --module commonjs --target ES2020 --esModuleInterop --skipLibCheck "${abs}"`,
+	execFileSync(
+		"npx",
+		[
+			"tsc",
+			"--outDir",
+			path.dirname(outJs),
+			"--module",
+			"commonjs",
+			"--target",
+			"ES2020",
+			"--esModuleInterop",
+			"--skipLibCheck",
+			abs,
+		],
 		{ stdio: "pipe" },
 	);
 
@@ -251,29 +267,93 @@ function urlToFilename(url: string): string {
 	return `${hash}-${baseName}`;
 }
 
+const VERSION = "1.0.8"; // keep in sync with package.json
+const HTTP_MAX_BYTES = 5 * 1024 * 1024; // 5 MB cap on a single game download
+const HTTP_TIMEOUT_MS = 15_000;
+const HTTP_MAX_REDIRECTS = 5;
+
 function httpGet(url: string): Promise<string> {
+	return httpGetWithRedirect(url, 0);
+}
+
+function httpGetWithRedirect(url: string, depth: number): Promise<string> {
 	return new Promise((resolve, reject) => {
-		https
-			.get(url, { headers: { "User-Agent": "pi-arcade-games/1.0" } }, (res) => {
+		let parsed: URL;
+		try {
+			parsed = new URL(url);
+		} catch {
+			reject(new Error(`Invalid URL: ${url}`));
+			return;
+		}
+		const lib = parsed.protocol === "http:" ? http : https;
+		let settled = false;
+		let req: http.ClientRequest;
+		const fail = (err: Error) => {
+			if (settled) return;
+			settled = true;
+			reject(err);
+			req.destroy();
+		};
+		req = lib.get(
+			url,
+			{ headers: { "User-Agent": `pi-arcade-games/${VERSION}` } },
+			(res) => {
+				// 3xx redirect — resolve a (possibly relative) location, cap depth
 				if (
 					res.statusCode &&
 					res.statusCode >= 300 &&
 					res.statusCode < 400 &&
 					res.headers.location
 				) {
-					// Follow redirect
-					httpGet(res.headers.location).then(resolve).catch(reject);
+					if (depth >= HTTP_MAX_REDIRECTS) {
+						res.resume();
+						fail(new Error(`Too many redirects fetching ${url}`));
+						return;
+					}
+					const next = new URL(res.headers.location, url).toString();
+					res.resume();
+					if (settled) return;
+					settled = true;
+					httpGetWithRedirect(next, depth + 1)
+						.then(resolve)
+						.catch(reject);
 					return;
 				}
 				if (res.statusCode !== 200) {
-					reject(new Error(`HTTP ${res.statusCode} fetching ${url}`));
+					res.resume();
+					fail(new Error(`HTTP ${res.statusCode} fetching ${url}`));
 					return;
 				}
 				let data = "";
-				res.on("data", (chunk) => (data += chunk));
-				res.on("end", () => resolve(data));
-				res.on("error", reject);
-			})
-			.on("error", reject);
+				let bytes = 0;
+				res.on("data", (chunk: Buffer) => {
+					if (settled) return;
+					bytes += chunk.length;
+					if (bytes > HTTP_MAX_BYTES) {
+						fail(
+							new Error(
+								`Response exceeded ${HTTP_MAX_BYTES} bytes fetching ${url}`,
+							),
+						);
+						return;
+					}
+					data += chunk;
+				});
+				res.on("end", () => {
+					if (!settled) {
+						settled = true;
+						resolve(data);
+					}
+				});
+				res.on("error", (err) => fail(err));
+			},
+		);
+		req.setTimeout(HTTP_TIMEOUT_MS, () => {
+			fail(new Error(`Request timed out after ${HTTP_TIMEOUT_MS}ms fetching ${url}`));
+		});
+		req.on("error", () => {
+			// Errors are funnelled through fail(); req.destroy() may re-emit,
+			// which is swallowed by the `settled` guard.
+		});
 	});
 }

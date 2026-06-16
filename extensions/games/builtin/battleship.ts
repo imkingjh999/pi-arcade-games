@@ -12,6 +12,7 @@ import type {
 import { type Component, matchesKey } from "@earendil-works/pi-tui";
 import type { GameModule } from "../types.js";
 import { type Lang, getLang, gui } from "../i18n.js";
+import { isResumable, isValidBoard } from "../save.js";
 import {
 	BOLD,
 	DIM,
@@ -133,7 +134,7 @@ function aiFire(
 				nr < SIZE &&
 				nc >= 0 &&
 				nc < SIZE &&
-				board[nr][nc] === "empty"
+				(board[nr][nc] === "empty" || board[nr][nc] === "ship")
 			) {
 				return [nr, nc];
 			}
@@ -179,6 +180,8 @@ class BattleshipComponent implements _Component {
 	private cachedWidth = 0;
 	private version = 0;
 	private cachedVersion = -1;
+	/** Once true, pending AI setTimeout callbacks no-op (ESC/restart safety). */
+	disposed = false;
 
 	constructor(
 		private tui: { requestRender: () => void },
@@ -195,7 +198,7 @@ class BattleshipComponent implements _Component {
 		this.cachedWidth = 0;
 	}
 
-	private updatePlacementPreview() {
+	updatePlacementPreview() {
 		const s = this.state;
 		if (s.phase !== "placing") return;
 		const def = SHIP_DEFS[s.currentShipIndex];
@@ -211,13 +214,17 @@ class BattleshipComponent implements _Component {
 
 	handleInput(data: string): boolean {
 		if (matchesKey(data, "escape")) {
+			this.disposed = true;
 			this.onClose();
 			return true;
 		}
 		const s = this.state;
 
 		if (s.phase === "won" || s.phase === "lost") {
-			if (data === "r") this.onClose();
+			if (data === "r") {
+				this.disposed = true;
+				this.onClose();
+			}
 			return true;
 		}
 
@@ -287,6 +294,7 @@ class BattleshipComponent implements _Component {
 
 					// AI fires
 					setTimeout(() => {
+						if (this.disposed) return;
 						const [ar, ac] = aiFire(s.playerBoard, s.aiLastHit);
 						const wasHit = s.playerBoard[ar][ac] === "ship";
 						s.playerBoard[ar][ac] = wasHit ? "hit" : "miss";
@@ -466,9 +474,27 @@ const gameBattleship: GameModule = {
 				return;
 			}
 
-			const state = createInitialState();
-
 			const lang = getLang(ctx);
+
+			// Restore saved state (placing or playing phase)
+			const entries = ctx.sessionManager.getEntries();
+			let state: GameState | undefined;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === SAVE_TYPE) {
+					const saved = e.data as GameState | null;
+					if (
+						saved &&
+						isResumable(saved) &&
+						isValidBoard(saved.playerBoard, SIZE, SIZE) &&
+						isValidBoard(saved.aiBoard, SIZE, SIZE)
+					) {
+						state = saved;
+					}
+					break;
+				}
+			}
+			if (!state) state = createInitialState();
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new BattleshipComponent(
@@ -480,7 +506,7 @@ const gameBattleship: GameModule = {
 					},
 					lang,
 				);
-				comp["updatePlacementPreview"]();
+				comp.updatePlacementPreview();
 				return comp;
 			});
 		};

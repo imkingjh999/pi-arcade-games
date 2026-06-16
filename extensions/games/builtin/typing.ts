@@ -346,7 +346,7 @@ Your WPM (words per minute) and accuracy are measured.`,
 系统会测量你的打字速度（WPM）和准确率。`,
 };
 
-const SAVE_TYPE = "typing-save";
+const HIGHSCORE_TYPE = "typing-highscore";
 
 const gameTypingTest: GameModule = {
 	meta: {
@@ -355,7 +355,6 @@ const gameTypingTest: GameModule = {
 		description: "Test your typing speed / 打字测速",
 		source: "builtin",
 	},
-	saveType: SAVE_TYPE,
 	intro: INTRO,
 
 	register(pi, registerMenuEntry) {
@@ -367,14 +366,26 @@ const gameTypingTest: GameModule = {
 
 			const lang = getLang(ctx);
 
-			const state = createInitialState();
+			// Load best-WPM high score (separate entry; never shows a 💾 badge)
+			const entries = ctx.sessionManager.getEntries();
+			let bestWpm = 0;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === HIGHSCORE_TYPE) {
+					bestWpm = ((e.data as { bestWpm?: number } | null)?.bestWpm) ?? 0;
+					break;
+				}
+			}
+			const state = createInitialState(bestWpm);
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new TypingTestComponent(
 					tui,
 					state,
 					() => {
-						pi.appendEntry(SAVE_TYPE, state);
+						if (state.phase === "done" && state.wpm > bestWpm) {
+							pi.appendEntry(HIGHSCORE_TYPE, { bestWpm: state.wpm });
+						}
 						done(undefined);
 					},
 					lang,
@@ -383,7 +394,7 @@ const gameTypingTest: GameModule = {
 			});
 		};
 
-		registerMenuEntry(gameTypingTest.meta, handler, SAVE_TYPE);
+		registerMenuEntry(gameTypingTest.meta, handler);
 	},
 };
 

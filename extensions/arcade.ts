@@ -45,6 +45,7 @@ import {
 	t,
 } from "./games/i18n.js";
 import { loadAndRegisterAll } from "./games/loader.js";
+import { isResumable } from "./games/save.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GAME REGISTRY (populated by loader at startup)
@@ -548,9 +549,8 @@ export default async function (pi: ExtensionAPI) {
 			for (let i = entries.length - 1; i >= 0; i--) {
 				const e = entries[i];
 				if (e.type === "custom" && e.customType === game.saveType) {
-					const data = e.data as { gameOver?: boolean } | null;
-					// Only count as "has save" if the data is non-null and game not over
-					if (data && !data.gameOver) {
+					// Resumable = in-progress game (honours gameOver/status/phase)
+					if (isResumable(e.data)) {
 						savedIds.push(game.meta.id);
 					}
 					break;
@@ -755,8 +755,7 @@ export default async function (pi: ExtensionAPI) {
 					for (let i = entries.length - 1; i >= 0; i--) {
 						const e = entries[i];
 						if (e.type === "custom" && e.customType === g.saveType) {
-							const data = e.data as { gameOver?: boolean } | null;
-							save = data && !data.gameOver ? " 💾" : "";
+							save = isResumable(e.data) ? " 💾" : "";
 							break;
 						}
 					}

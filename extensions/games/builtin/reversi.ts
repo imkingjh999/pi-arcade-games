@@ -10,6 +10,7 @@ import { type Component, matchesKey } from "@earendil-works/pi-tui";
 import type { GameModule } from "../types.js";
 import { type Lang, getLang, gui } from "../i18n.js";
 import { BOLD, DIM, BOLD_GREEN, BOLD_YELLOW, centerPad } from "../ansi.js";
+import { isResumable, isValidSquareBoard } from "../save.js";
 
 type _Component = Component;
 
@@ -207,6 +208,8 @@ class ReversiComponent implements _Component {
 	private cachedWidth = 0;
 	private version = 0;
 	private cachedVersion = -1;
+	/** Once true, pending AI setTimeout callbacks no-op (ESC/restart safety). */
+	disposed = false;
 
 	constructor(
 		private tui: { requestRender: () => void },
@@ -227,11 +230,15 @@ class ReversiComponent implements _Component {
 
 	handleInput(data: string): boolean {
 		if (matchesKey(data, "escape")) {
+			this.disposed = true;
 			this.onClose();
 			return true;
 		}
 		if (this.state.status !== "playing") {
-			if (data === "r") this.onClose();
+			if (data === "r") {
+				this.disposed = true;
+				this.onClose();
+			}
 			return true;
 		}
 		// Allow cursor movement even during AI turn
@@ -289,7 +296,7 @@ class ReversiComponent implements _Component {
 		// Score
 		if (s.status === "playing") {
 			const turnLabel = s.aiThinking
-				? DIM(gui("thinking", this.lang).replace("Agent", "AI"))
+				? DIM(gui("aiThinking", this.lang))
 				: s.currentTurn === 1
 					? `${BOLD("●")} ${gui("turn", this.lang)}`
 					: `${BOLD_YELLOW("●")} ${gui("turn", this.lang)}`;
@@ -403,15 +410,37 @@ const gameReversi: GameModule = {
 
 			const lang = getLang(ctx);
 
-			const state: GameState = {
-				board: createBoard(),
-				cursorRow: 2,
-				cursorCol: 2,
-				currentTurn: 1,
-				status: "playing",
-				aiThinking: false,
-				lastMove: null,
-			};
+			// Restore saved state (resumable in-progress game)
+			const entries = ctx.sessionManager.getEntries();
+			let state: GameState | undefined;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === SAVE_TYPE) {
+					const saved = e.data as GameState | null;
+					if (
+						saved &&
+						isResumable(saved) &&
+						isValidSquareBoard(saved.board, SIZE)
+					) {
+						state = saved;
+						// If we quit during the AI's turn, hand back to the player
+						// to avoid a stuck "thinking" state.
+						state.currentTurn = 1;
+						state.aiThinking = false;
+					}
+					break;
+				}
+			}
+			if (!state)
+				state = {
+					board: createBoard(),
+					cursorRow: 2,
+					cursorCol: 2,
+					currentTurn: 1,
+					status: "playing",
+					aiThinking: false,
+					lastMove: null,
+				};
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new ReversiComponent(
@@ -440,6 +469,7 @@ const gameReversi: GameModule = {
 						comp.updateState(state);
 
 						setTimeout(() => {
+							if (comp.disposed) return;
 							const move = aiMove(state.board);
 							if (move) {
 								state.board = applyMove(state.board, move[0], move[1], 2);
@@ -457,6 +487,7 @@ const gameReversi: GameModule = {
 								state.aiThinking = true;
 								comp.updateState(state);
 								setTimeout(() => {
+									if (comp.disposed) return;
 									const move2 = aiMove(state.board);
 									if (move2) {
 										state.board = applyMove(state.board, move2[0], move2[1], 2);

@@ -9,6 +9,7 @@ import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { type Component, matchesKey } from "@earendil-works/pi-tui";
 import type { GameModule } from "../types.js";
 import { type Lang, getLang, gui } from "../i18n.js";
+import { isResumable, isValidBoard } from "../save.js";
 import {
 	BOLD,
 	DIM,
@@ -221,6 +222,8 @@ class ConnectFourComponent implements _Component {
 	private cachedWidth = 0;
 	private version = 0;
 	private cachedVersion = -1;
+	/** Once true, pending AI setTimeout callbacks no-op (ESC/restart safety). */
+	disposed = false;
 
 	constructor(
 		private tui: { requestRender: () => void },
@@ -241,11 +244,15 @@ class ConnectFourComponent implements _Component {
 
 	handleInput(data: string): boolean {
 		if (matchesKey(data, "escape")) {
+			this.disposed = true;
 			this.onClose();
 			return true;
 		}
 		if (this.state.status !== "playing") {
-			if (data === "r") this.onClose();
+			if (data === "r") {
+				this.disposed = true;
+				this.onClose();
+			}
 			return true;
 		}
 		if (this.state.currentTurn !== 1 || this.state.aiThinking) return true;
@@ -287,7 +294,7 @@ class ConnectFourComponent implements _Component {
 			if (s.aiThinking) {
 				lines.push(
 					centerPad(
-						DIM(gui("thinking", this.lang).replace("Agent", "AI")),
+						DIM(gui("aiThinking", this.lang)),
 						width,
 					),
 				);
@@ -435,14 +442,38 @@ const gameConnectFour: GameModule = {
 			}
 
 			const lang = getLang(ctx);
-			const state: GameState = {
-				board: createBoard(),
-				selectedCol: 3,
-				status: "playing",
-				currentTurn: 1,
-				aiThinking: false,
-				lastMove: null,
-			};
+
+			// Restore saved state (resumable in-progress game)
+			const entries = ctx.sessionManager.getEntries();
+			let state: GameState | undefined;
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const e = entries[i];
+				if (e.type === "custom" && e.customType === SAVE_TYPE) {
+					const saved = e.data as GameState | null;
+					if (
+						saved &&
+						isResumable(saved) &&
+						isValidBoard(saved.board, ROWS, COLS)
+					) {
+						state = saved;
+						// If we quit during the AI's turn (setTimeout window), the
+						// pending AI move was never made. Hand the turn back to
+						// the player to avoid a stuck "thinking" state.
+						state.currentTurn = 1;
+						state.aiThinking = false;
+					}
+					break;
+				}
+			}
+			if (!state)
+				state = {
+					board: createBoard(),
+					selectedCol: 3,
+					status: "playing",
+					currentTurn: 1,
+					aiThinking: false,
+					lastMove: null,
+				};
 
 			await ctx.ui.custom<void>((tui, _t, _kb, done) => {
 				const comp = new ConnectFourComponent(
@@ -473,6 +504,7 @@ const gameConnectFour: GameModule = {
 
 						// AI moves after short delay
 						setTimeout(() => {
+							if (comp.disposed) return;
 							const aiCol = aiMove(state.board);
 							const aiRow = dropPiece(state.board, aiCol, 2);
 							if (aiRow !== null) state.lastMove = [aiRow, aiCol];

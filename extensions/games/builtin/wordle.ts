@@ -253,7 +253,7 @@ class WordleComponent implements _Component {
 
 		// Legend
 		const correctLabel = gui("correctPos", this.lang);
-		const presentLabel = gui("correctPos", this.lang);
+		const presentLabel = gui("wrongPos", this.lang);
 		const absentLabel = gui("misses", this.lang);
 		lines.push(
 			centerPad(

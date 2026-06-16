@@ -89,6 +89,8 @@ class PongComponent implements _Component {
 	private cachedVersion = -1;
 	private gameInterval: ReturnType<typeof setInterval> | null = null;
 	private countdownInterval: ReturnType<typeof setInterval> | null = null;
+	private disposed = false;
+	private pendingTimeouts: ReturnType<typeof setTimeout>[] = [];
 
 	constructor(
 		private tui: { requestRender: () => void },
@@ -100,8 +102,11 @@ class PongComponent implements _Component {
 	}
 
 	destroy() {
+		this.disposed = true;
 		if (this.gameInterval) clearInterval(this.gameInterval);
 		if (this.countdownInterval) clearInterval(this.countdownInterval);
+		for (const t of this.pendingTimeouts) clearTimeout(t);
+		this.pendingTimeouts = [];
 	}
 
 	private startCountdown() {
@@ -124,6 +129,7 @@ class PongComponent implements _Component {
 	}
 
 	private tick() {
+		if (this.disposed) return;
 		const s = this.state;
 		if (s.status !== "playing") return;
 
@@ -193,12 +199,15 @@ class PongComponent implements _Component {
 				s.status = "lost";
 			} else {
 				s.status = "scored";
-				setTimeout(() => {
-					resetBall(s, true); // AI scored, serve toward player
-					s.status = "playing";
-					this.version++;
-					this.tui.requestRender();
-				}, 800);
+				this.pendingTimeouts.push(
+					setTimeout(() => {
+						if (this.disposed) return;
+						resetBall(s, true); // AI scored, serve toward player
+						s.status = "playing";
+						this.version++;
+						this.tui.requestRender();
+					}, 800),
+				);
 			}
 		} else if (s.ballX > 1) {
 			s.playerScore++;
@@ -206,12 +215,15 @@ class PongComponent implements _Component {
 				s.status = "won";
 			} else {
 				s.status = "scored";
-				setTimeout(() => {
-					resetBall(s, false); // Player scored, serve toward AI
-					s.status = "playing";
-					this.version++;
-					this.tui.requestRender();
-				}, 800);
+				this.pendingTimeouts.push(
+					setTimeout(() => {
+						if (this.disposed) return;
+						resetBall(s, false); // Player scored, serve toward AI
+						s.status = "playing";
+						this.version++;
+						this.tui.requestRender();
+					}, 800),
+				);
 			}
 		}
 
@@ -356,8 +368,6 @@ class PongComponent implements _Component {
 // GameModule Export
 // ═══════════════════════════════════════════════════════════════════════════
 
-const SAVE_TYPE = "pong-save";
-
 const gamePong: GameModule = {
 	meta: {
 		id: "pong",
@@ -365,7 +375,6 @@ const gamePong: GameModule = {
 		description: "Classic paddle game",
 		source: "builtin",
 	},
-	saveType: SAVE_TYPE,
 	intro: INTRO,
 
 	register(pi, registerMenuEntry) {
@@ -384,7 +393,6 @@ const gamePong: GameModule = {
 					state,
 					() => {
 						comp.destroy();
-						pi.appendEntry(SAVE_TYPE, state);
 						done(undefined);
 					},
 					lang,
@@ -393,7 +401,7 @@ const gamePong: GameModule = {
 			});
 		};
 
-		registerMenuEntry(gamePong.meta, handler, SAVE_TYPE);
+		registerMenuEntry(gamePong.meta, handler);
 	},
 };
 
